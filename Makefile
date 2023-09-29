@@ -4,4 +4,7 @@ format:
 lint:
 	buf lint
 
-.PHONY: format, lint
+gencode:
+	./gencode.sh
+
+.PHONY: format, lint, gencode
