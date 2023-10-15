@@ -4,7 +4,7 @@
 // - protoc             (unknown)
 // source: proto/v1/notificator.proto
 
-package proto
+package protov1
 
 import (
 	context "context"

@@ -1,8 +1,6 @@
 syntax = "proto3";
 package proto.v1;
 
-option go_package = "github.com/yuxsr/yuxsr-dev-pb/gencode/go/proto";
-
 service NotificatorService {
   rpc Notify(NotifyRequest) returns (NotifyResponse);
 }

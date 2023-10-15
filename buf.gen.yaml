@@ -1,4 +1,8 @@
 version: v1
+managed:
+  enabled: true
+  go_package_prefix:
+    default: github.com/yuxsr/yuxsr-dev-pb/gencode/go
 plugins:
   - plugin: go
     out: gencode/go
