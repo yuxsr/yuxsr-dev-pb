@@ -1,9 +1,9 @@
-module github.com/yuxsr/yuxsr-dev-pb/gencode/go_proto
+module github.com/yuxsr/yuxsr-dev-pb/gencode/go/proto
 
 go 1.21.1
 
 require (
-	google.golang.org/grpc v1.58.2
+	google.golang.org/grpc v1.58.3
 	google.golang.org/protobuf v1.31.0
 )
 

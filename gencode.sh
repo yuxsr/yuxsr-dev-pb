@@ -5,14 +5,14 @@ PROTO_PATH=./proto/v1
 # 
 # golang
 #
-rm -f gencode/go_proto/*.pb.go
+rm -f gencode/go/proto/v1/*.pb.go
 
-protoc -I=${PROTO_PATH} --go_out=./gencode/go_proto --go_opt=paths=source_relative --go-grpc_out=./gencode/go_proto --go-grpc_opt=paths=source_relative --go-grpc_opt=require_unimplemented_servers=false ${PROTO_PATH}/*.proto
+buf generate
 
-cd ./gencode/go_proto
+cd ./gencode/go/proto/v1
 if [ ! -e ./go.mod ]; then
     echo "go.mod is not exist, init gomodule."
-    go mod init github.com/yuxsr/yuxsr-dev-pb/gencode/go_proto
+    go mod init github.com/yuxsr/yuxsr-dev-pb/gencode/go/proto
 fi
 
 go mod tidy
