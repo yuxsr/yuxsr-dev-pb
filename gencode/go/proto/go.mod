@@ -1,4 +1,4 @@
-module github.com/yuxsr/yuxsr-dev-pb/gencode/go/protov1
+module github.com/yuxsr/yuxsr-dev-pb/gencode/go/proto
 
 go 1.21.1
 
