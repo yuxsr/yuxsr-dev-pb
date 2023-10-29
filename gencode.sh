@@ -2,13 +2,11 @@
 
 PROTO_PATH=./proto/v1
 
+buf generate --path ${PROTO_PATH}
+
 # 
 # golang
 #
-rm -f gencode/go/proto/v1/*.pb.go
-
-buf generate --path ${PROTO_PATH}
-
 cd ./gencode/go/proto
 if [ ! -e ./go.mod ]; then
     echo "go.mod is not exist, init gomodule."
@@ -16,3 +14,8 @@ if [ ! -e ./go.mod ]; then
 fi
 
 go mod tidy
+
+#
+# TypeScript
+#
+tsc
