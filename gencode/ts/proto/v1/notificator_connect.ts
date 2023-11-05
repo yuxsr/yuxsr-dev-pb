@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { NotifyRequest, NotifyResponse } from "./notificator_pb.js";
+import { NotifyRequest, NotifyResponse } from "./notificator_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
