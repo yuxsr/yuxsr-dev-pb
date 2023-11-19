@@ -14,3 +14,8 @@ if [ ! -e ./go.mod ]; then
 fi
 
 go mod tidy
+
+#
+# TypeScript
+#
+tsc
