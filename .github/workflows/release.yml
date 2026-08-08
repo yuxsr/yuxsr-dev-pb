@@ -1,0 +1,94 @@
+name: Release
+
+# タグを打つ前に「利用側と同じ形で読み込めるか」を必ず検証する。
+# 手でタグを打つ運用では、この検証が抜けて壊れた成果物がリリースされる
+# (実際に v0.1.1 がその状態でリリースされていた)。
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: リリース内容の検証
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: タグと package.json の version が一致すること
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p 'require("./package.json").version')"
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::タグ ($GITHUB_REF_NAME) と package.json の version ($pkg) が一致しません。"
+            exit 1
+          fi
+          echo "version = $pkg"
+
+      - run: npm ci
+
+      - name: buf lint
+        run: npx buf lint
+
+      - name: buf format (差分がないこと)
+        run: npx buf format --diff --exit-code
+
+      - name: コードを再生成する
+        run: npm run generate
+
+      - name: コミット済みの生成物が最新であること
+        run: |
+          # git diff は未追跡ファイルを検出しないため status を使う。
+          # 新しい .proto を追加して生成物をコミットし忘れた場合を捕まえる。
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --porcelain
+            git --no-pager diff
+            echo "::error::生成物が最新ではありません。壊れた成果物のリリースを中止します。"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      # 利用側と同じ経路でパッケージを読み込めることを確認する。
+      - name: スモークテスト
+        run: npm test
+
+      # npm pack した実物に、利用側が import するファイルが含まれるか確認する。
+      - name: 配布物の中身を検証する
+        run: |
+          # glob だと /tmp の他の tgz を拾いうるのでファイル名を受け取る。
+          tgz="$(npm pack --pack-destination /tmp --silent | tail -1)"
+          tar tzf "/tmp/${tgz}" | sort | tee /tmp/contents.txt
+          for f in package/src/index.js package/src/index.d.ts \
+                   package/gen/ts/yuxsr/notification/v1/notificator_pb.js \
+                   package/gen/ts/yuxsr/notification/v1/notificator_pb.d.ts; do
+            grep -qx "$f" /tmp/contents.txt || { echo "::error::$f が配布物に含まれていません。"; exit 1; }
+          done
+
+  release:
+    name: GitHub Release を作成
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        with:
+          generate_release_notes: true

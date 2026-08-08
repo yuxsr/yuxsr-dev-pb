@@ -1,24 +1,35 @@
 version: v2
-clean: true
+
+# 生成物の削除は generate.sh が担当する。
+# buf の `clean: true` は出力ディレクトリを丸ごと消すため、Go モジュールの
+# メタデータまで巻き込む危険がある。削除対象は生成物に限定する。
+
 managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: github.com/yushi-a/yuxsr_dev_pb/gencode/go
+      value: github.com/yushi-a/yuxsr-dev-pb/gen/go
+
 plugins:
-  - remote: buf.build/protocolbuffers/go:v1.31.0
-    out: gencode/go
+  # ローカルプラグインを使う。リモートプラグイン (buf.build) は BSR への
+  # ネットワーク到達性が必須になるため、CI や制限された環境で再生成できない。
+  # バージョンは generate.sh / package.json で固定している。
+  - local: protoc-gen-go
+    out: gen/go
     opt: paths=source_relative
-  - remote: buf.build/grpc/go:v1.5.1
-    out: gencode/go
+  - local: protoc-gen-go-grpc
+    out: gen/go
     opt:
       - paths=source_relative
       - require_unimplemented_servers=false
-  - remote: buf.build/bufbuild/es:v2.9.0
-    opt: target=ts
-    out: gencode/ts
-  - remote: buf.build/connectrpc/es:v1.6.1
-    opt: target=ts
-    out: gencode/ts
+  # Connect のハンドラは Connect / gRPC / gRPC-Web を同一ポートでさばく。
+  # ブラウザから直接呼べない素の gRPC サーバの代わりに使う。
+  - local: protoc-gen-connect-go
+    out: gen/go
+    opt: paths=source_relative
+  - local: protoc-gen-es
+    out: gen/ts
+    opt: target=js+dts
+
 inputs:
   - directory: proto

@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package yuxsr.notification.v1;
+
+// go_package は buf.gen.yaml の managed mode (go_package_prefix) が付与する。
+// ここで明示すると生成設定と二重管理になるため定義しない。
+
+service NotificatorService {
+  rpc Notify(NotifyRequest) returns (NotifyResponse);
+}
+
+message NotifyRequest {
+  string message = 1;
+}
+
+message NotifyResponse {}
