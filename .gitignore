@@ -165,3 +165,8 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/go,node
+### このリポジトリ固有
+# protoc プラグインのローカルインストール先
+.tools/
+# gen/ 配下の生成コードはコミットする。ビルド段階を持たない構成のため、
+# 生成物がそのまま配布物になる (Go / TypeScript とも)。

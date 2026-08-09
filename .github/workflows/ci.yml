@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  proto:
+    name: proto (lint / format / breaking)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # buf breaking が比較対象のリビジョンを参照するため全履歴を取得する。
+          fetch-depth: 0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: buf lint
+        run: npx buf lint
+
+      - name: buf format (差分がないこと)
+        run: npx buf format --diff --exit-code
+
+      # 意図的な破壊的変更を含む PR には breaking-change ラベルを付けてスキップする。
+      # ラベルなしで破壊的変更を入れられないようにするのが目的なので、
+      # 恒久的な除外設定 (buf.yaml の ignore) は使わない。
+      - name: buf breaking (base ブランチとの比較)
+        if: >-
+          github.event_name == 'pull_request' &&
+          !contains(github.event.pull_request.labels.*.name, 'breaking-change')
+        run: npx buf breaking --against ".git#ref=origin/${{ github.base_ref }}"
+
+  codegen:
+    name: 生成物の検証 (regenerate / go / ts)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      # protoc プラグインは generate.sh が go install する。
+      # バージョンは generate.sh 内で固定しているので、その内容をキーにする。
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .tools
+          key: protoc-plugins-${{ runner.os }}-${{ hashFiles('generate.sh') }}
+
+      - run: npm ci
+
+      # generate.sh は 生成 → go mod tidy → go build → 型検査 までを実行する。
+      - name: コードを再生成する
+        run: npm run generate
+
+      - name: コミット済みの生成物が最新であること
+        run: |
+          # git diff は未追跡ファイルを検出しないため status を使う。
+          # 新しい .proto を追加して生成物をコミットし忘れた場合を捕まえる。
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --porcelain
+            git --no-pager diff
+            echo "::error::生成物がコミットされたものと一致しません。ローカルで 'npm run generate' を実行し、差分をコミットしてください。"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: スモークテスト
+        run: npm test

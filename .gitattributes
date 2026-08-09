@@ -1,0 +1,9 @@
+# 生成物。GitHub の差分表示で折りたたみ、言語統計から除外する。
+# 手書きは proto/*.proto と src/*.ts のみ。
+gen/**            linguist-generated=true
+src/index.js      linguist-generated=true
+src/index.d.ts    linguist-generated=true
+
+# 改行コードを固定する。
+* text=auto eol=lf
+*.sh text eol=lf
