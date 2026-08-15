@@ -33,7 +33,7 @@ GO_MODULE_NAME="github.com/yushi-a/yuxsr-dev-pb"
 
 # protoc プラグインの固定バージョン。
 # protoc-gen-es は npm の devDependencies (@bufbuild/protoc-gen-es) で固定する。
-PROTOC_GEN_GO_VERSION="v1.36.11"
+PROTOC_GEN_GO_VERSION="v1.36.12"
 PROTOC_GEN_GO_GRPC_VERSION="v1.6.2"
 PROTOC_GEN_CONNECT_GO_VERSION="v1.20.0"
 
