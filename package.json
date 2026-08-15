@@ -1,6 +1,6 @@
 {
   "name": "yuxsr-dev-pb",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "yuxsr-dev の各サービスが共有する Protocol Buffers 定義と生成コード",
   "license": "ISC",
   "repository": {
