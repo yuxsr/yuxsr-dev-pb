@@ -40,6 +40,6 @@
     "@bufbuild/buf": "^1.72.0",
     "@bufbuild/protoc-gen-es": "^2.13.0",
     "@connectrpc/connect": "^2.1.2",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   }
 }
