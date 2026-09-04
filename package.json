@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@bufbuild/buf": "^1.72.0",
-    "@bufbuild/protoc-gen-es": "^2.13.0",
+    "@bufbuild/protoc-gen-es": "^2.14.1",
     "@connectrpc/connect": "^2.1.2",
     "typescript": "^7.0.2"
   }
